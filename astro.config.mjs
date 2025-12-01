@@ -9,6 +9,7 @@ import rehypeExternalLinks from 'rehype-external-links'
 export default defineConfig({
   site: 'https://kyoma102.github.io/my-blog',
   base: '/my-blog',
+  trailingSlash: 'always',
   integrations: [mdx(), svelte()],
   markdown: {
     shikiConfig: {
