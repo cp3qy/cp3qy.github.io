@@ -1,5 +1,5 @@
 ---
-title: GAS自动清理Gmail未读邮件
+title: GAS 自动清理 Gmail 未读邮件
 slug: gas-auto-clean-gmail
 publishDate: 01 Dec 2025
 ---
