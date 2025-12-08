@@ -7,6 +7,7 @@ const posts = defineCollection({
 		title: z.string(),
 		slug: z.string(),
 		publishDate: z.union([z.string(), z.date()]),
+		category: z.enum(['tech', 'books']).optional().default('tech'),
 	}),
 });
 

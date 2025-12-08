@@ -1,0 +1,135 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  // 获取所有文章并提取唯一分类
+  const allPosts = await getCollection('posts');
+  const categories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
+  
+  // 为每个分类生成路径
+  return categories.map(category => ({
+    params: { category },
+    props: { category, allPosts }
+  }));
+}
+
+const { category } = Astro.params;
+const allPosts = Astro.props.allPosts;
+
+// 过滤当前分类的文章
+const categoryPosts = allPosts.filter(post => post.data.category === category);
+const sortedPosts = categoryPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+
+const title = `${category.charAt(0).toUpperCase() + category.slice(1)} Category`;
+const description = `Articles in the ${category} category.`;
+const permalink = `${Astro.site.href}category/${category}`;
+
+// 获取所有唯一分类用于导航
+const allCategories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
+---
+
+<BaseLayout title={title} description={description} permalink={permalink} current="category">
+  <div class="container">
+    <h1>{category.charAt(0).toUpperCase() + category.slice(1)} Posts</h1>
+    
+    <!-- Category navigation -->
+    <div class="category-nav">
+      <a href="/" class="category-link">Home</a>
+      {allCategories.map(cat => (
+        <a 
+          href={`/category/${cat}`} 
+          class={`category-link ${category === cat ? 'active' : ''}`}
+        >
+          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+        </a>
+      ))}
+    </div>
+    
+    <!-- 显示分类文章 -->
+    {sortedPosts.length > 0 ? (
+      sortedPosts.map((post, index) => {
+        const href = `/post/${post.data.slug}`;
+        return (
+          <div>
+            { index !== 0 && <hr /> }
+            <div class="post-item">
+              <h2>
+                <a href={href}>{post.data.title}</a>
+              </h2>
+              <div class="post-item-footer">
+                <span class="post-item-date">— {post.data.publishDate}</span>
+                <span class="post-category">— {post.data.category}</span>
+              </div>
+            </div>
+          </div>
+        )
+      })
+    ) : (
+      <p>No posts found in this category.</p>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  h2,
+  .post-item-footer {
+    font-family: var(--font-family-sans);
+    font-weight: 700;
+  }
+
+  .post-item-date {
+    color: var(--text-secondary);
+    text-align: left;
+    text-transform: uppercase;
+    margin-right: 16px;
+  }
+  
+  .post-category {
+    color: var(--p-emerald-500);
+    text-align: left;
+    text-transform: uppercase;
+    margin-right: 16px;
+  }
+
+  hr {
+    margin: 60px auto;
+  }
+  
+  .category-nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .category-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--p-surface-300);
+    border-radius: var(--p-border-radius-md);
+    text-decoration: none;
+    color: var(--p-text-color);
+    transition: all var(--p-transition-duration);
+  }
+  
+  .category-link:hover {
+    background-color: var(--p-surface-100);
+    border-color: var(--p-surface-400);
+  }
+  
+  .category-link.active {
+    background-color: var(--p-emerald-100);
+    border-color: var(--p-emerald-500);
+    color: var(--p-emerald-700);
+  }
+  
+  .post-item a {
+    text-decoration: none;
+    color: inherit;
+  }
+</style>

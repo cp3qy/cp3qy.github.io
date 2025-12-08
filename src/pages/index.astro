@@ -1,9 +1,25 @@
 ---
+import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const title = 'My Astro Blog';
 const description = 'The perfect starter for your perfect blog.';
 const permalink = Astro.site.href;
+
+// 获取所有文章
+let allPosts = await getCollection('posts');
+// 按分类分组
+const postsByCategory = {};
+allPosts.forEach(post => {
+  const category = post.data.category || 'tech'; // 默认为tech
+  if (!postsByCategory[category]) {
+    postsByCategory[category] = [];
+  }
+  postsByCategory[category].push(post);
+});
+
+// 获取所有唯一分类
+const categories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
 ---
 
 <BaseLayout
@@ -18,8 +34,28 @@ const permalink = Astro.site.href;
 >
   <div class="home-container">
     <div class="home-copy">
-      <h1>don't know what to do with this page</h1>
-      <p>Welcome to my blog! Analytics tracking is now enabled.</p>
+      <!-- 分类导航 -->
+      <div class="categories-grid">
+        {categories.map(category => {
+          const categoryPosts = postsByCategory[category] || [];
+          return (
+            <a href={`/category/${category}`} class="category-card">
+              <div class="category-header">
+                <h3>{category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                <span class="post-count">{categoryPosts.length} posts</span>
+              </div>
+              <div class="latest-posts">
+                {categoryPosts.slice(0, 3).map(post => (
+                  <div class="post-preview">
+                    <span class="post-title">{post.data.title}</span>
+                    <span class="post-date">{post.data.publishDate}</span>
+                  </div>
+                ))}
+              </div>
+            </a>
+          )
+        })}
+      </div>
     </div>
   </div>
 </BaseLayout>
@@ -45,40 +81,92 @@ const permalink = Astro.site.href;
     line-height: 1.3;
   }
 
-  .home-copy p {
-    font-size: 1.4em;
+  .category-nav h2 {
+    margin-bottom: 1.5rem;
+    color: var(--p-text-color);
   }
 
-  .hero-image-container {
-    margin: 0 1em;
-    text-align: center;
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
   }
 
-  .hero-image-container picture {
+  .category-card {
     display: block;
-    min-height: 250px;
+    padding: 1.5rem;
+    border: 1px solid #d1d5db; /* 使用更明显的灰色边框 */
+    border-radius: var(--p-border-radius-md);
+    text-decoration: none;
+    color: var(--p-text-color);
+    transition: all var(--p-transition-duration);
+    background-color: var(--p-surface-0);
   }
 
-  .caption {
-    font-size: .8em;
-    font-style: italic;
-    text-align: left;
+  .category-card:hover {
+    background-color: var(--p-surface-50);
+    border-color: #9ca3af; /* 悬停时使用更深的灰色边框 */
+    transform: translateY(-1px);
   }
 
-  .hero-image {
-    width: 100%;
-    max-width: 550px;
-    margin-bottom: 1em;
+  .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--p-surface-200);
   }
 
-  @media (max-width: 1200px) {
-    p {
-      font-size: 1.2em;
-    }
+  .category-header h3 {
+    margin: 0;
+    color: var(--p-primary-700);
+    font-size: 1.25rem;
+  }
 
-    .hero-image {
-      max-width: 400px;
-    }
+  .post-count {
+    background-color: var(--p-emerald-100);
+    color: var(--p-emerald-800);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--p-border-radius-sm);
+    font-size: 0.875rem;
+  }
+
+  .latest-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .post-preview {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--p-surface-200);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .post-preview:hover {
+    background-color: var(--p-surface-50);
+    border-radius: var(--p-border-radius-sm);
+  }
+
+  .post-preview:last-child {
+    border-bottom: none;
+  }
+
+  .post-title {
+    flex: 1;
+    color: var(--p-text-color);
+    font-weight: 500;
+  }
+
+  .post-date {
+    color: var(--p-text-muted-color);
+    font-size: 0.875rem;
+    margin-left: 1rem;
+    white-space: nowrap;
   }
 
   @media (max-width: 800px) {
@@ -90,6 +178,10 @@ const permalink = Astro.site.href;
       flex: 0;
       padding-bottom: 2em;
       text-align: center;
+    }
+
+    .categories-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

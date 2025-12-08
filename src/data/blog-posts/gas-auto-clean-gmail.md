@@ -2,6 +2,7 @@
 title: 使用 GAS 批量标记 Gmail 邮件为已读
 slug: gas-auto-clean-gmail
 publishDate: 01 Dec 2025
+category: tech
 ---
 
 Gmail 里躺着 1000 多封未读邮件，需要自动批量标记为已读的方法。于是从 ChatGPT 那里第一次了解到 Google Apps Script（GAS），可以用 Google 自家的云端脚本实现这个需求。

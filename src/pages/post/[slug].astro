@@ -1,0 +1,80 @@
+---
+import { getCollection, render } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  // 获取所有文章
+  const allPosts = await getCollection('posts');
+
+  // 为每篇文章生成路径
+  return allPosts.map(post => ({
+    params: { slug: post.data.slug },
+    props: { post }
+  }));
+}
+
+// 渲染Markdown内容
+const { Content, metadata } = await render(Astro.props.post);
+
+const post = Astro.props.post;
+const title = post.data.title;
+const description = post.data.title;
+const permalink = `${Astro.site.href}post/${post.data.slug}`;
+---
+
+<BaseLayout title={title} permalink={permalink} current="post">
+  <div class="container">
+    <h1>{post.data.title}</h1>
+    <div class="post-meta">
+      <span>Published: {post.data.publishDate}</span>
+      <span>Category: {post.data.category}</span>
+    </div>
+    <div class="post-content">
+      <Content />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .post-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--p-text-muted-color);
+  }
+
+  .post-content {
+    line-height: 1.6;
+  }
+
+  .post-content h1,
+  .post-content h2,
+  .post-content h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .post-content p {
+    margin-bottom: 1em;
+  }
+
+  .post-content img {
+    max-width: 100%;
+  }
+
+  .post-content ul,
+  .post-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .post-content li {
+    margin-bottom: 0.25rem;
+  }
+</style>
