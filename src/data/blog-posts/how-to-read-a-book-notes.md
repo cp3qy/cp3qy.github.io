@@ -1,8 +1,11 @@
 ---
-title: 《如何阅读一本书》读书笔记
-slug: how-to-read-a-book-notes
+title: 高度敏感的力量
+slug: highly-sensitive-people-power-notes
 publishDate: 05 Dec 2025
 category: books
+coverImage: /images/books/高度敏感的力量.jpg
+readingStatus: finished
+rating: 4
 ---
 
 《如何阅读一本书》是一本关于阅读方法的经典著作，作者莫提默·J. 艾德勒和查尔斯·范多伦在书中提出了系统的阅读理论和方法。以下是我在阅读这本书时的一些关键笔记和感悟。

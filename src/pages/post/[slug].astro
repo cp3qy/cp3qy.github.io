@@ -20,6 +20,15 @@ const post = Astro.props.post;
 const title = post.data.title;
 const description = post.data.title;
 const permalink = `${Astro.site.href}post/${post.data.slug}`;
+
+// 为books分类准备状态和评级显示
+const statusLabels = {
+  'to-read': 'To Read',
+  'reading': 'Reading',
+  'finished': 'Finished',
+  'abandoned': 'Abandoned'
+};
+
 ---
 
 <BaseLayout title={title} permalink={permalink} current="post">
@@ -29,6 +38,46 @@ const permalink = `${Astro.site.href}post/${post.data.slug}`;
       <span>Published: {post.data.publishDate}</span>
       <span>Category: {post.data.category}</span>
     </div>
+
+    {/* 如果是books分类的文章，显示额外信息 */}
+    {post.data.category === 'books' && (
+      <div class="book-details">
+        <div class="book-header">
+          {post.data.coverImage && (
+            <img
+              src={post.data.coverImage}
+              alt={post.data.title}
+              class="book-cover-image"
+              onError={(e) => {
+                e.target.src = '/images/books/placeholder.svg';
+              }}
+            />
+          )}
+          <div class="book-info-extra">
+            {post.data.readingStatus && (
+              <div class="book-status">
+                <strong>Status:</strong>
+                <span class={`status-badge status-${post.data.readingStatus}`}>
+                  {statusLabels[post.data.readingStatus]}
+                </span>
+              </div>
+            )}
+            {post.data.rating !== undefined && (
+              <div class="book-rating">
+                <strong>Rating:</strong>
+                <div class="stars">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <span key={i} class={`star ${i < (post.data.rating || 0) ? 'filled' : ''}`}>&#9733;</span>
+                  ))}
+                </div>
+                <span class="rating-value">({post.data.rating}/5)</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+
     <div class="post-content">
       <Content />
     </div>
@@ -47,6 +96,106 @@ const permalink = `${Astro.site.href}post/${post.data.slug}`;
     gap: 1rem;
     margin-bottom: 1.5rem;
     color: var(--p-text-muted-color);
+  }
+
+  .book-details {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    border: 1px solid var(--p-surface-300);
+    border-radius: var(--p-border-radius-md);
+  }
+
+  .book-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .book-cover-image {
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  .book-info-extra {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .book-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .book-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stars {
+    display: flex;
+  }
+
+  .star {
+    color: #ddd;
+    font-size: 1.2rem;
+  }
+
+  .star.filled {
+    color: #ffc107;
+  }
+
+  .rating-value {
+    margin-left: 0.5rem;
+    color: var(--p-text-color);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .status-to-read {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  .status-reading {
+    background-color: #fff8e1;
+    color: #ff8f00;
+  }
+
+  .status-finished {
+    background-color: #e8f5e9;
+    color: #388e3c;
+  }
+
+  .status-abandoned {
+    background-color: #ffebee;
+    color: #d32f2f;
+  }
+
+  .book-cover-placeholder {
+    width: 120px;
+    height: 160px;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-style: italic;
+    border-radius: 4px;
   }
 
   .post-content {
