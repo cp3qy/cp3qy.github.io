@@ -36,14 +36,16 @@ const statusLabels = {
 // 获取所有唯一分类用于导航
 const allCategories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
 
-// 为书籍分类准备按状态分组的数据
-let currentPosts = sortedPosts;
-if (category === 'books') {
-  const statusParam = Astro.url.searchParams.get('status');
-  if (statusParam && statusParam !== 'all') {
-    currentPosts = sortedPosts.filter(post => post.data.readingStatus === statusParam);
+// 为所有书籍分类准备数据，客户端将处理过滤
+const allBooksData = JSON.stringify(sortedPosts.map(post => ({
+  ...post,
+  data: {
+    ...post.data,
+    publishDate: post.data.publishDate instanceof Date
+      ? post.data.publishDate.toISOString()
+      : post.data.publishDate
   }
-}
+})));
 ---
 
 <BaseLayout title={title} description={description} permalink={permalink} current="category">
@@ -52,7 +54,7 @@ if (category === 'books') {
     <!-- 显示分类文章 -->
     {sortedPosts.length > 0 ? (
       category === 'books' ? (
-        // 书籍分类使用标签页布局
+        // 书籍分类使用标签页布局，通过客户端JavaScript处理过滤
         <div class="books-container">
           <div class="books-tabs">
             {['all', 'to-read', 'reading', 'finished', 'abandoned'].map(status => {
@@ -60,28 +62,22 @@ if (category === 'books') {
                 ? sortedPosts.length
                 : sortedPosts.filter(post => post.data.readingStatus === status).length;
 
-              // 确定当前激活的状态
-              const currentStatus = Astro.url.searchParams.get('status') || 'all';
-              const href = status === 'all'
-                ? `/category/${category}`
-                : `/category/${category}?status=${status}`;
               return (
-                <a
-                  href={href}
-                  class={`tab-button ${currentStatus === status ? 'active' : ''}`}
+                <button
+                  class="tab-button"
                   data-status={status}
                 >
                   {status === 'all' ? 'All' : statusLabels[status]}
                   <span class="tab-count">{count}</span>
-                </a>
+                </button>
               );
             })}
           </div>
 
-          <div class="books-grid">
-            {currentPosts.map((post) => {
+          <div class="books-grid" id="books-grid">
+            {sortedPosts.map((post) => {
               return (
-                <div class="book-card">
+                <div class="book-card" data-status={post.data.readingStatus || 'to-read'}>
                   <div>
                     {post.data.coverImage ? (
                       <img
@@ -134,6 +130,90 @@ if (category === 'books') {
   </div>
 </BaseLayout>
 
+<script>
+  // 初始化书本过滤功能
+  function initBookFilter() {
+    // 获取所有标签按钮和书籍卡片
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const bookCards = document.querySelectorAll('.book-card');
+
+    if (tabButtons.length === 0 || bookCards.length === 0) {
+      // 如果元素尚未就绪，稍后重试
+      setTimeout(initBookFilter, 100);
+      return;
+    }
+
+    // 从URL中获取初始状态参数
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentStatus = urlParams.get('status') || 'all';
+
+    // 更新标签高亮状态
+    function updateActiveTab() {
+      tabButtons.forEach(button => {
+        const status = button.getAttribute('data-status');
+        if (status === currentStatus) {
+          button.classList.add('active');
+        } else {
+          button.classList.remove('active');
+        }
+      });
+    }
+
+    // 过滤显示的书籍
+    function filterBooks() {
+      bookCards.forEach(card => {
+        const status = card.getAttribute('data-status');
+        if (currentStatus === 'all' || status === currentStatus) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // 更新URL参数
+    function updateURL(status) {
+      const url = new URL(window.location);
+      if (status === 'all') {
+        url.searchParams.delete('status');
+      } else {
+        url.searchParams.set('status', status);
+      }
+      window.history.replaceState({}, '', url);
+    }
+
+    // 为所有标签按钮添加点击事件
+    tabButtons.forEach(button => {
+      // 移除可能已存在的事件监听器
+      const newButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newButton, button);
+
+      // 添加新的事件监听器
+      newButton.addEventListener('click', (e) => {
+        e.preventDefault(); // 阻止默认行为
+        currentStatus = newButton.getAttribute('data-status');
+        updateActiveTab();
+        filterBooks();
+        updateURL(currentStatus);
+      });
+    });
+
+    // 初始化时设置正确的标签状态和过滤
+    updateActiveTab();
+    filterBooks();
+  }
+
+  // 使用 Astro 的页面加载事件，确保在页面导航后也能正确初始化
+  document.addEventListener("astro:page-load", initBookFilter);
+
+  // 在初始页面加载时初始化
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBookFilter);
+  } else {
+    // 如果页面已经加载完成，直接初始化
+    initBookFilter();
+  }
+</script>
 
 <style>
   .container {
