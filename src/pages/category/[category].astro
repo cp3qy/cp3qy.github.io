@@ -251,6 +251,9 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
 </script>
 
 <style>
+  /* [保持] 引入目标网站所需的字体文件 */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=PT+Serif:wght@400;700&display=swap');
+
   .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -393,8 +396,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    /* [修改] 移除 opacity/visibility 过渡，只保留 hover 效果的过渡 */
-    /* View Transitions API 会处理布局动画 */
+    /* [保持] View Transitions API 布局动画配置 */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     height: fit-content;
     will-change: transform;
@@ -402,7 +404,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     contain: layout paint;
   }
 
-  /* [修改] 使用 display: none 确保 Grid 自动填补空位 */
+  /* [保持] 使用 display: none 确保 Grid 自动填补空位 */
   .book-card.hidden {
     display: none;
   }
@@ -414,7 +416,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   .book-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-    /* [修改] Hover 时暂时禁用 view-transition-name 以防冲突 */
+    /* [保持] Hover 时暂时禁用 view-transition-name 以防冲突 */
     view-transition-name: none;
   }
 
@@ -427,10 +429,10 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   .book-cover {
     width: 100%;
     height: 280px;
-    object-fit: contain; /* 改为contain以完整显示图片，而不是裁剪 */
+    object-fit: contain;
     display: block;
-    background-color: #f8f9fa; /* 添加浅色背景 */
-    border-radius: 4px; /* 保持边角圆润 */
+    background-color: #f8f9fa;
+    border-radius: 4px;
   }
 
   .book-cover-placeholder {
@@ -453,10 +455,26 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     text-align: center;
   }
 
+  /* [修改] 标题样式：包含字体、颜色(54, 65, 83)及多行截断 */
   .book-info h3 {
+    /* 布局与间距 */
     margin: 0 0 1rem 0;
     font-size: 1.1rem;
     line-height: 1.4;
+    font-weight: 700;
+    
+    /* [新增] 字体颜色修改 */
+    color: rgb(54, 65, 83);
+    
+    /* 字体设置 */
+    font-family: "Noto Serif SC", "Noto Serif JP", "PT Serif", Georgia, "Times New Roman", Times, "Songti SC", SimSun, serif;
+    
+    /* 多行省略号截断 (超过3行隐藏) */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
   }
 
   .book-status {
