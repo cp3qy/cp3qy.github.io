@@ -76,10 +76,14 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
 
           <div class="books-grid" id="books-grid">
             {sortedPosts.map((post) => {
+              // [修改] 生成唯一的 transition name，用于 View Transitions API 追踪元素位置
+              const transitionName = `book-${post.data.slug.replace(/[^a-zA-Z0-9-]/g, '-')}`;
+              
               return (
                 <div
                   class="book-card visible"
                   data-status={post.data.readingStatus || 'to-read'}
+                  style={`view-transition-name: ${transitionName}`}
                 >
                   <div>
                     {post.data.coverImage ? (
@@ -162,22 +166,34 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
       });
     }
 
-    // 过滤显示的书籍
+    // [修改] 过滤显示的书籍 - 使用 View Transitions API
     function filterBooks() {
-      bookCards.forEach(card => {
-        const status = card.getAttribute('data-status');
-        if (currentStatus === 'all' || status === currentStatus) {
-          card.classList.remove('hidden');
-          setTimeout(() => {
+      // 定义 DOM 更新逻辑
+      const updateDOM = () => {
+        bookCards.forEach(card => {
+          const status = card.getAttribute('data-status');
+          if (currentStatus === 'all' || status === currentStatus) {
+            card.classList.remove('hidden');
             card.classList.add('visible');
-          }, 10); // 小延迟确保transition生效
-        } else {
-          card.classList.remove('visible');
-          setTimeout(() => {
+          } else {
+            card.classList.remove('visible');
             card.classList.add('hidden');
-          }, 10); // 小延迟确保transition生效
-        }
-      });
+          }
+        });
+      };
+
+      // 检查浏览器是否支持 View Transitions
+      // @ts-ignore
+      if (document.startViewTransition) {
+        // 使用原生 API 处理平滑过渡和布局重排
+        // @ts-ignore
+        document.startViewTransition(() => {
+          updateDOM();
+        });
+      } else {
+        // 降级方案：不支持的浏览器直接切换（无动画但布局正确）
+        updateDOM();
+      }
     }
 
     // 更新URL参数
@@ -209,7 +225,17 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
 
     // 初始化时设置正确的标签状态和过滤
     updateActiveTab();
-    filterBooks();
+    // 初始加载不需要动画，直接执行 DOM 更新即可
+    bookCards.forEach(card => {
+      const status = card.getAttribute('data-status');
+      if (currentStatus === 'all' || status === currentStatus) {
+        card.classList.remove('hidden');
+        card.classList.add('visible');
+      } else {
+        card.classList.remove('visible');
+        card.classList.add('hidden');
+      }
+    });
   }
 
   // 使用 Astro 的页面加载事件，确保在页面导航后也能正确初始化
@@ -367,29 +393,29 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s ease;
+    /* [修改] 移除 opacity/visibility 过渡，只保留 hover 效果的过渡 */
+    /* View Transitions API 会处理布局动画 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     height: fit-content;
-    opacity: 1;
-    will-change: opacity, transform;
+    will-change: transform;
+    /* 优化渲染性能 */
+    contain: layout paint;
   }
 
+  /* [修改] 使用 display: none 确保 Grid 自动填补空位 */
   .book-card.hidden {
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(15px) scale(0.98);
-    pointer-events: none;
+    display: none;
   }
 
   .book-card.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
+    display: block;
   }
 
   .book-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    /* [修改] Hover 时暂时禁用 view-transition-name 以防冲突 */
+    view-transition-name: none;
   }
 
   .book-card a {
