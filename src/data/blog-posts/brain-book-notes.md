@@ -4,7 +4,7 @@ slug: brain-book-notes
 publishDate: 13 Dec 2025
 category: books
 coverImage: /images/books/一本不正经的大脑.jpg
-readingStatus: reading
+readingStatus: abandoned
 ---
 
 《一本不正经的大脑》是一本关于神经科学和心理学的有趣著作，通过轻松幽默的方式探讨了人类大脑的运作机制。以下是我在阅读这本书时的一些关键笔记和感悟。
