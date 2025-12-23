@@ -1,16 +1,18 @@
 ---
-import { getCollection } from 'astro:content'
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
   // 获取所有文章并提取唯一分类
-  const allPosts = await getCollection('posts');
-  const categories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
+  const allPosts = await getCollection("posts");
+  const categories = [
+    ...new Set(allPosts.map((post) => post.data.category || "tech")),
+  ];
 
   // 为每个分类生成路径
-  return categories.map(category => ({
+  return categories.map((category) => ({
     params: { category },
-    props: { category, allPosts }
+    props: { category, allPosts },
   }));
 }
 
@@ -18,8 +20,14 @@ const { category } = Astro.params;
 const allPosts = Astro.props.allPosts;
 
 // 过滤当前分类的文章
-const categoryPosts = allPosts.filter(post => post.data.category === category);
-const sortedPosts = categoryPosts.sort((a, b) => new Date(b.data.publishDate).valueOf() - new Date(a.data.publishDate).valueOf());
+const categoryPosts = allPosts.filter(
+  (post) => post.data.category === category
+);
+const sortedPosts = categoryPosts.sort(
+  (a, b) =>
+    new Date(b.data.publishDate).valueOf() -
+    new Date(a.data.publishDate).valueOf()
+);
 
 const title = `${category.charAt(0).toUpperCase() + category.slice(1)} Category`;
 const description = `Articles in the ${category} category.`;
@@ -27,65 +35,76 @@ const permalink = `${Astro.site.href}category/${category}`;
 
 // 定义状态标签
 const statusLabels = {
-  'to-read': 'To Read',
-  'reading': 'Reading',
-  'finished': 'Finished',
-  'abandoned': 'Abandoned'
+  "to-read": "To Read",
+  reading: "Reading",
+  finished: "Finished",
+  abandoned: "Abandoned",
 };
 
 // 获取所有唯一分类用于导航
-const allCategories = [...new Set(allPosts.map(post => post.data.category || 'tech'))];
+const allCategories = [
+  ...new Set(allPosts.map((post) => post.data.category || "tech")),
+];
 
 // 为所有书籍分类准备数据，客户端将处理过滤
-const allBooksData = JSON.stringify(sortedPosts.map(post => ({
-  ...post,
-  data: {
-    ...post.data,
-    publishDate: post.data.publishDate instanceof Date
-      ? post.data.publishDate.toISOString()
-      : post.data.publishDate
-  }
-})));
+const allBooksData = JSON.stringify(
+  sortedPosts.map((post) => ({
+    ...post,
+    data: {
+      ...post.data,
+      publishDate:
+        post.data.publishDate instanceof Date
+          ? post.data.publishDate.toISOString()
+          : post.data.publishDate,
+    },
+  }))
+);
 ---
 
-<BaseLayout title={title} description={description} permalink={permalink} current="category">
+<BaseLayout
+  title={title}
+  description={description}
+  permalink={permalink}
+  current="category"
+>
   <div class="container">
-
     <!-- 显示分类文章 -->
-    {sortedPosts.length > 0 ? (
-      category === 'books' ? (
-        // 书籍分类使用标签页布局，通过客户端JavaScript处理过滤
-        <div class="books-container">
-          <div class="books-tabs">
-            {['all', 'to-read', 'reading', 'finished', 'abandoned'].map(status => {
-              const count = status === 'all'
-                ? sortedPosts.length
-                : sortedPosts.filter(post => post.data.readingStatus === status).length;
+    {
+      sortedPosts.length > 0 ? (
+        category === "books" ? (
+          // 书籍分类使用标签页布局，通过客户端JavaScript处理过滤
+          <div class="books-container">
+            <div class="books-tabs">
+              {["all", "to-read", "reading", "finished", "abandoned"].map(
+                (status) => {
+                  const count =
+                    status === "all"
+                      ? sortedPosts.length
+                      : sortedPosts.filter(
+                          (post) => post.data.readingStatus === status
+                        ).length;
 
-              return (
-                <button
-                  class="tab-button"
-                  data-status={status}
-                >
-                  {status === 'all' ? 'All' : statusLabels[status]}
-                  <span class="tab-count">{count}</span>
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button class="tab-button" data-status={status}>
+                      {status === "all" ? "All" : statusLabels[status]}
+                      <span class="tab-count">{count}</span>
+                    </button>
+                  );
+                }
+              )}
+            </div>
 
-          <div class="books-grid" id="books-grid">
-            {sortedPosts.map((post) => {
-              // [修改] 生成唯一的 transition name，用于 View Transitions API 追踪元素位置
-              const transitionName = `book-${post.data.slug.replace(/[^a-zA-Z0-9-]/g, '-')}`;
-              
-              return (
-                <div
-                  class="book-card visible"
-                  data-status={post.data.readingStatus || 'to-read'}
-                  style={`view-transition-name: ${transitionName}`}
-                >
-                  <div>
+            <div class="books-grid" id="books-grid">
+              {sortedPosts.map((post) => {
+                // [修改] 生成唯一的 transition name，用于 View Transitions API 追踪元素位置
+                const transitionName = `book-${post.data.slug.replace(/[^a-zA-Z0-9-]/g, "-")}`;
+
+                return (
+                  <div
+                    class="book-card visible"
+                    data-status={post.data.readingStatus || "to-read"}
+                    style={`view-transition-name: ${transitionName}`}
+                  >
                     {post.data.coverImage ? (
                       <img
                         src={post.data.coverImage}
@@ -93,7 +112,8 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
                         class="book-cover"
                         onError={(e) => {
                           // 如果图片加载失败，显示占位图
-                          e.target.src = '/images/books/placeholder.svg';
+                          // @ts-ignore
+                          e.target.src = "/images/books/placeholder.svg";
                         }}
                       />
                     ) : (
@@ -106,34 +126,35 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
                       <h3>{post.data.title}</h3>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ) : (
-        // 非书籍分类使用原始布局
-        sortedPosts.map((post, index) => {
-          const href = `/post/${post.data.slug}`;
-          return (
-            <div>
-              { index !== 0 && <hr /> }
-              <div class="post-item">
-                <h2>
-                  <a href={href}>{post.data.title}</a>
-                </h2>
-                <div class="post-item-footer">
-                  <span class="post-item-date">— {post.data.publishDate}</span>
-                  <span class="post-category">— {post.data.category}</span>
+        ) : (
+          // 非书籍分类使用原始布局
+          sortedPosts.map((post, index) => {
+            const href = `/post/${post.data.slug}`;
+            return (
+              <div>
+                {index !== 0 && <hr />}
+                <div class="post-item">
+                  <h2>
+                    <a href={href}>{post.data.title}</a>
+                  </h2>
+                  <div class="post-item-footer">
+                    <span class="post-item-date">
+                      — {post.data.publishDate}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        })
+            );
+          })
+        )
+      ) : (
+        <p>No posts found in this category.</p>
       )
-    ) : (
-      <p>No posts found in this category.</p>
-    )}
+    }
   </div>
 </BaseLayout>
 
@@ -141,8 +162,8 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   // 初始化书本过滤功能
   function initBookFilter() {
     // 获取所有标签按钮和书籍卡片
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const bookCards = document.querySelectorAll('.book-card');
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const bookCards = document.querySelectorAll(".book-card");
 
     if (tabButtons.length === 0 || bookCards.length === 0) {
       // 如果元素尚未就绪，稍后重试
@@ -152,16 +173,16 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
 
     // 从URL中获取初始状态参数
     const urlParams = new URLSearchParams(window.location.search);
-    let currentStatus = urlParams.get('status') || 'all';
+    let currentStatus = urlParams.get("status") || "all";
 
     // 更新标签高亮状态
     function updateActiveTab() {
-      tabButtons.forEach(button => {
-        const status = button.getAttribute('data-status');
+      tabButtons.forEach((button) => {
+        const status = button.getAttribute("data-status");
         if (status === currentStatus) {
-          button.classList.add('active');
+          button.classList.add("active");
         } else {
-          button.classList.remove('active');
+          button.classList.remove("active");
         }
       });
     }
@@ -170,14 +191,14 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     function filterBooks() {
       // 定义 DOM 更新逻辑
       const updateDOM = () => {
-        bookCards.forEach(card => {
-          const status = card.getAttribute('data-status');
-          if (currentStatus === 'all' || status === currentStatus) {
-            card.classList.remove('hidden');
-            card.classList.add('visible');
+        bookCards.forEach((card) => {
+          const status = card.getAttribute("data-status");
+          if (currentStatus === "all" || status === currentStatus) {
+            card.classList.remove("hidden");
+            card.classList.add("visible");
           } else {
-            card.classList.remove('visible');
-            card.classList.add('hidden');
+            card.classList.remove("visible");
+            card.classList.add("hidden");
           }
         });
       };
@@ -199,24 +220,24 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     // 更新URL参数
     function updateURL(status) {
       const url = new URL(window.location);
-      if (status === 'all') {
-        url.searchParams.delete('status');
+      if (status === "all") {
+        url.searchParams.delete("status");
       } else {
-        url.searchParams.set('status', status);
+        url.searchParams.set("status", status);
       }
-      window.history.replaceState({}, '', url);
+      window.history.replaceState({}, "", url);
     }
 
     // 为所有标签按钮添加点击事件
-    tabButtons.forEach(button => {
+    tabButtons.forEach((button) => {
       // 移除可能已存在的事件监听器
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
 
       // 添加新的事件监听器
-      newButton.addEventListener('click', (e) => {
+      newButton.addEventListener("click", (e) => {
         e.preventDefault(); // 阻止默认行为
-        currentStatus = newButton.getAttribute('data-status');
+        currentStatus = newButton.getAttribute("data-status");
         updateActiveTab();
         filterBooks();
         updateURL(currentStatus);
@@ -226,14 +247,14 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     // 初始化时设置正确的标签状态和过滤
     updateActiveTab();
     // 初始加载不需要动画，直接执行 DOM 更新即可
-    bookCards.forEach(card => {
-      const status = card.getAttribute('data-status');
-      if (currentStatus === 'all' || status === currentStatus) {
-        card.classList.remove('hidden');
-        card.classList.add('visible');
+    bookCards.forEach((card) => {
+      const status = card.getAttribute("data-status");
+      if (currentStatus === "all" || status === currentStatus) {
+        card.classList.remove("hidden");
+        card.classList.add("visible");
       } else {
-        card.classList.remove('visible');
-        card.classList.add('hidden');
+        card.classList.remove("visible");
+        card.classList.add("hidden");
       }
     });
   }
@@ -242,8 +263,8 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   document.addEventListener("astro:page-load", initBookFilter);
 
   // 在初始页面加载时初始化
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBookFilter);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initBookFilter);
   } else {
     // 如果页面已经加载完成，直接初始化
     initBookFilter();
@@ -252,7 +273,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
 
 <style>
   /* [保持] 引入目标网站所需的字体文件 */
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=PT+Serif:wght@400;700&display=swap');
+  @import url("https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=PT+Serif:wght@400;700&display=swap");
 
   .container {
     max-width: 1200px;
@@ -305,7 +326,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   }
 
   .tab-button.active::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -1rem;
     left: 0;
@@ -397,8 +418,12 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     /* [保持] View Transitions API 布局动画配置 */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: fit-content;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+    /* height: fit-content; removed to allow grid stretch */
+    display: flex;
+    flex-direction: column;
     will-change: transform;
     /* 优化渲染性能 */
     contain: layout paint;
@@ -410,7 +435,7 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
   }
 
   .book-card.visible {
-    display: block;
+    display: flex;
   }
 
   .book-card:hover {
@@ -450,9 +475,10 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     text-align: center;
+    flex-grow: 1;
   }
 
   /* [修改] 标题样式：包含字体、颜色(54, 65, 83)及多行截断 */
@@ -462,19 +488,22 @@ const allBooksData = JSON.stringify(sortedPosts.map(post => ({
     font-size: 1.1rem;
     line-height: 1.4;
     font-weight: 700;
-    
+
     /* [新增] 字体颜色修改 */
     color: rgb(54, 65, 83);
-    
+
     /* 字体设置 */
-    font-family: "Noto Serif SC", "Noto Serif JP", "PT Serif", Georgia, "Times New Roman", Times, "Songti SC", SimSun, serif;
-    
-    /* 多行省略号截断 (超过3行隐藏) */
+    font-family:
+      "Noto Serif SC", "Noto Serif JP", "PT Serif", Georgia, "Times New Roman",
+      Times, "Songti SC", SimSun, serif;
+
+    /* 多行省略号截断 (建议固定为2行高度以保持整齐) */
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    min-height: 2.8em; /* 1.4 line-height * 2 lines */
   }
 
   .book-status {
