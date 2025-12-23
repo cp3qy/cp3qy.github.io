@@ -105,26 +105,28 @@ const allBooksData = JSON.stringify(
                     data-status={post.data.readingStatus || "to-read"}
                     style={`view-transition-name: ${transitionName}`}
                   >
-                    {post.data.coverImage ? (
-                      <img
-                        src={post.data.coverImage}
-                        alt={post.data.title}
-                        class="book-cover"
-                        onError={(e) => {
-                          // 如果图片加载失败，显示占位图
-                          // @ts-ignore
-                          e.target.src = "/images/books/placeholder.svg";
-                        }}
-                      />
-                    ) : (
-                      <div class="book-cover-placeholder">
-                        <span>No Cover</span>
-                      </div>
-                    )}
+                    <a href={`/post/${post.data.slug}`}>
+                      {post.data.coverImage ? (
+                        <img
+                          src={post.data.coverImage}
+                          alt={post.data.title}
+                          class="book-cover"
+                          onError={(e) => {
+                            // 如果图片加载失败，显示占位图
+                            // @ts-ignore
+                            e.target.src = "/images/books/placeholder.svg";
+                          }}
+                        />
+                      ) : (
+                        <div class="book-cover-placeholder">
+                          <span>No Cover</span>
+                        </div>
+                      )}
 
-                    <div class="book-info">
-                      <h3>{post.data.title}</h3>
-                    </div>
+                      <div class="book-info">
+                        <h3>{post.data.title}</h3>
+                      </div>
+                    </a>
                   </div>
                 );
               })}

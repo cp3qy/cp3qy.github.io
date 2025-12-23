@@ -4,7 +4,7 @@
   --text-secondary: #6b6f72;
   --primary-color: #548e9b;
   --font-family-serif: Merriweather, serif;
-  --font-family-sans: 'Fira Sans', sans-serif;
+  --font-family-sans: "Fira Sans", sans-serif;
 }
 
 :root.theme-dark {
@@ -54,13 +54,13 @@ h6 {
 
 h1 {
   font-family: var(--font-family-serif);
-  font-size: 4em;
-  margin: 0 0 1em 0;
+  font-size: 2.5rem;
+  margin: 0 0 0.5em 0;
 }
 
 h2 {
-  margin: 1.6em 0 0 0;
-  font-size: 1.8em;
+  margin: 1.2em 0 0.4em 0;
+  font-size: 1.6rem;
 }
 
 h3 {
@@ -138,7 +138,7 @@ hr {
 }
 
 code {
-  font-family: 'SF Mono', menlo, inconsolata, monospace;
+  font-family: "SF Mono", menlo, inconsolata, monospace;
   font-size: calc(1em - 2px);
   color: #555;
   padding: 0.2em 0.4em;
@@ -247,7 +247,7 @@ td {
   opacity: 1;
 }
 
-input[name='theme-toggle'] {
+input[name="theme-toggle"] {
   position: absolute;
   opacity: 0;
   top: 0;
